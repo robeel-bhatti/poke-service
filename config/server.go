@@ -8,6 +8,7 @@ import (
 	"poke-ai-service/clients"
 	"poke-ai-service/handlers"
 	"poke-ai-service/services"
+	"time"
 )
 
 type appDeps struct {
@@ -46,8 +47,14 @@ func NewMux(deps *appDeps) *http.ServeMux {
 }
 
 func BuildDeps(deps *appDeps) *handlers.PokeHandler {
-	pokeClient := clients.NewPokeClient(deps.Logger, deps.BaseUrl)
+	pokeClient := clients.NewPokeClient(deps.Logger, deps.BaseUrl, BuildHttpClient(float64(10)))
 	pokeService := services.NewPokemonService(deps.Logger, pokeClient)
 	pokeHandler := handlers.NewHandler(deps.Logger, pokeService)
 	return pokeHandler
+}
+
+func BuildHttpClient(t float64) *http.Client {
+	return &http.Client{
+		Timeout: time.Duration(t) * time.Second,
+	}
 }

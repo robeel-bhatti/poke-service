@@ -7,6 +7,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"poke-ai-service/errors"
 	"poke-ai-service/models"
 )
@@ -15,24 +16,30 @@ import (
 type PokeClient struct {
 	BaseUrl string
 	Logger  *slog.Logger
+	Client  *http.Client
 }
 
-// NewPokeClient creates an instance of a PokeClient struct using
-// the dependencies it has been injected with.
-func NewPokeClient(logger *slog.Logger, baseUrl string) *PokeClient {
+// NewPokeClient serves as the constructor.
+func NewPokeClient(logger *slog.Logger, baseUrl string, httpClient *http.Client) *PokeClient {
 	return &PokeClient{
 		BaseUrl: baseUrl,
 		Logger:  logger,
+		Client:  httpClient,
 	}
 }
 
 // GetPokemonByName invokes the Pokemon API to get a Pokemon by the provided name
 // and return the Pokemon metadata in a custom Pokemon struct or an error object if an unexpected failure occurs.
 func (pc *PokeClient) GetPokemonByName(name string) (*models.PokemonResponse, error) {
-	res, err := http.Get(pc.BaseUrl + name)
+	fullUrl, err := url.JoinPath(pc.BaseUrl, name)
+	if err != nil {
+		return nil, fmt.Errorf("%w: error creating URL to call pokemon API: %v", errors.ErrInternalServerError, err)
+	}
+
+	res, err := pc.Client.Get(fullUrl)
 
 	if err != nil {
-		return nil, fmt.Errorf("%w: too many redirects or HTTP protocol error: %w", errors.ErrInternalServerError, err)
+		return nil, fmt.Errorf("%w: too many redirects or HTTP protocol error: %v", errors.ErrInternalServerError, err)
 	}
 
 	if res.StatusCode != http.StatusOK {
@@ -43,13 +50,13 @@ func (pc *PokeClient) GetPokemonByName(name string) (*models.PokemonResponse, er
 	body, err := io.ReadAll(res.Body)
 
 	if err != nil {
-		return nil, fmt.Errorf("%w: error reading response body: %w", errors.ErrInternalServerError, err)
+		return nil, fmt.Errorf("%w: error reading response body: %v", errors.ErrInternalServerError, err)
 	}
 
 	pokeRes, err := pc.unmarshalPokemon(body)
 
 	if err != nil {
-		return nil, fmt.Errorf("%w: error deserializing response body: %w", errors.ErrInternalServerError, err)
+		return nil, fmt.Errorf("%w: error deserializing response body: %v", errors.ErrInternalServerError, err)
 	}
 
 	return pokeRes, nil

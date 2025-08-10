@@ -19,7 +19,7 @@ type PokeClient struct {
 	Client  *http.Client
 }
 
-// NewPokeClient creates an instance of a PokeClient struct
+// NewPokeClient serves as the constructor.
 func NewPokeClient(logger *slog.Logger, baseUrl string, httpClient *http.Client) *PokeClient {
 	return &PokeClient{
 		BaseUrl: baseUrl,

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
-	"poke-ai-service/errors"
+	"poke-ai-service/handlers/errors"
 	"poke-ai-service/services"
 )
 

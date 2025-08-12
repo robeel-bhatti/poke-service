@@ -8,7 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
-	"poke-ai-service/errors"
+	"poke-ai-service/handlers/errors"
 	"poke-ai-service/models"
 )
 

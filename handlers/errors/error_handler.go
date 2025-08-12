@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"poke-ai-service/constants"
+	"poke-ai-service/util/constants"
 	"time"
 )
 

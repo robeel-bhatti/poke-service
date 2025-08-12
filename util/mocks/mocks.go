@@ -1,3 +1,4 @@
+// Package mocks provides mock deps for app-wide unit tests
 package mocks
 
 import (

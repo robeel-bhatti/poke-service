@@ -1,3 +1,4 @@
+// Package services performs biz logic functionality
 package services
 
 import (
@@ -19,6 +20,7 @@ func NewPokemonService(logger *slog.Logger, client *clients.PokeClient) *Pokemon
 	}
 }
 
+// GetPokemonByName performs the biz logic to complete this operation
 func (ps PokemonService) GetPokemonByName(name string) (*models.PokemonResponse, error) {
 	pokemon, err := ps.Client.GetPokemonByName(name)
 	if err != nil {

@@ -1,3 +1,4 @@
+// Package errors provides custom app-wide error handling
 package errors
 
 import (
@@ -8,6 +9,7 @@ import (
 	"time"
 )
 
+// vars to be used in app-wide error messages and can be used to unwrap errors
 var (
 	ErrNotFound            = errors.New("not found")
 	ErrInternalServerError = errors.New("internal server error")
@@ -24,6 +26,7 @@ var (
 	}
 )
 
+// AppError struct defines API error response body fields
 type AppError struct {
 	Message   string    `json:"message"`
 	Timestamp time.Time `json:"timestamp"`
@@ -54,6 +57,7 @@ func BuildAppError(err error, path string, reqId string) *AppError {
 	return NewAppError(err.Error(), httpCode, path, reqId)
 }
 
+// CreateErrorResponse creates and returns custom error HTTP response
 func CreateErrorResponse(err error, w http.ResponseWriter, r *http.Request) {
 	appErr := BuildAppError(err, r.URL.Path, r.Header.Get(constants.RequestIdKey))
 	w.WriteHeader(appErr.Status)

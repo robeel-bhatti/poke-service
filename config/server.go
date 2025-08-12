@@ -16,6 +16,7 @@ type appDeps struct {
 	BaseUrl string
 }
 
+// StartApp gathers metadata to start the server
 func StartApp() error {
 	envErr := godotenv.Load()
 	if envErr != nil {
@@ -38,14 +39,15 @@ func StartApp() error {
 	return nil
 }
 
+// NewMux creates a new Multiplexer to handle HTTP requests
 func NewMux(deps *appDeps) *http.ServeMux {
 	mux := http.NewServeMux()
 	handler := BuildDeps(deps)
-	mux.HandleFunc("/pokemon", handler.GetPokemon)
 	mux.HandleFunc("/pokemon/{name}", handler.GetPokemonByName)
 	return mux
 }
 
+// BuildDeps creates deps the handlers need
 func BuildDeps(deps *appDeps) *handlers.PokeHandler {
 	pokeClient := clients.NewPokeClient(deps.Logger, deps.BaseUrl, BuildHttpClient(float64(10)))
 	pokeService := services.NewPokemonService(deps.Logger, pokeClient)
@@ -53,6 +55,7 @@ func BuildDeps(deps *appDeps) *handlers.PokeHandler {
 	return pokeHandler
 }
 
+// BuildHttpClient creates an http client with configurable timeout settings
 func BuildHttpClient(t float64) *http.Client {
 	return &http.Client{
 		Timeout: time.Duration(t) * time.Second,

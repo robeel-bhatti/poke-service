@@ -1,13 +1,13 @@
+// Package errors provides custom app-wide error handling
 package errors
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
-	"poke-ai-service/util/constants"
 	"time"
 )
 
+// vars to be used in app-wide error messages and can be used to unwrap errors
 var (
 	ErrNotFound            = errors.New("not found")
 	ErrInternalServerError = errors.New("internal server error")
@@ -24,6 +24,7 @@ var (
 	}
 )
 
+// AppError struct defines API error response body fields
 type AppError struct {
 	Message   string    `json:"message"`
 	Timestamp time.Time `json:"timestamp"`
@@ -44,20 +45,14 @@ func NewAppError(message string, status int, path string, reqId string) *AppErro
 	}
 }
 
-func BuildAppError(err error, path string, reqId string) *AppError {
-	var httpCode int
+// CreateErrorResponse creates and returns custom error HTTP response
+func CreateErrorResponse(err error, path string, reqId string) *AppError {
+	httpCode := http.StatusInternalServerError
 	for e, code := range ErrMap {
 		if errors.Is(err, e) {
 			httpCode = code
+			break
 		}
 	}
 	return NewAppError(err.Error(), httpCode, path, reqId)
-}
-
-func CreateErrorResponse(err error, w http.ResponseWriter, r *http.Request) {
-	appErr := BuildAppError(err, r.URL.Path, r.Header.Get(constants.RequestIdKey))
-	w.WriteHeader(appErr.Status)
-	w.Header().Set(constants.ContentTypeKey, constants.ContentTypeValue)
-	w.Header().Set(constants.RequestIdKey, appErr.RequestId)
-	json.NewEncoder(w).Encode(appErr)
 }

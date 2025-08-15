@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// LoadLogger creates a custom app-wide logger
 func LoadLogger() *slog.Logger {
 	opts := &slog.HandlerOptions{
 		AddSource: true,

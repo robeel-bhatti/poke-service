@@ -1,3 +1,5 @@
+// Package models provides structs that represents API requests / responses
+// and app DTOs
 package models
 
 type Pokemon struct {

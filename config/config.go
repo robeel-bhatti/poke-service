@@ -1,3 +1,4 @@
+// Package config loads all the app-wide config for the app to run
 package config
 
 import (
@@ -10,6 +11,7 @@ type Config struct {
 	LogLevel string
 }
 
+// LoadConfig loads any required env vars
 func LoadConfig() *Config {
 	return &Config{
 		Port:     os.Getenv("PORT"),

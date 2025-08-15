@@ -2,10 +2,8 @@
 package errors
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
-	"poke-ai-service/util/constants"
 	"time"
 )
 
@@ -47,21 +45,14 @@ func NewAppError(message string, status int, path string, reqId string) *AppErro
 	}
 }
 
-func BuildAppError(err error, path string, reqId string) *AppError {
-	var httpCode int
+// CreateErrorResponse creates and returns custom error HTTP response
+func CreateErrorResponse(err error, path string, reqId string) *AppError {
+	httpCode := http.StatusInternalServerError
 	for e, code := range ErrMap {
 		if errors.Is(err, e) {
 			httpCode = code
+			break
 		}
 	}
 	return NewAppError(err.Error(), httpCode, path, reqId)
-}
-
-// CreateErrorResponse creates and returns custom error HTTP response
-func CreateErrorResponse(err error, w http.ResponseWriter, r *http.Request) {
-	appErr := BuildAppError(err, r.URL.Path, r.Header.Get(constants.RequestIdKey))
-	w.WriteHeader(appErr.Status)
-	w.Header().Set(constants.ContentTypeKey, constants.ContentTypeValue)
-	w.Header().Set(constants.RequestIdKey, appErr.RequestId)
-	json.NewEncoder(w).Encode(appErr)
 }

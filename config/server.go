@@ -44,6 +44,7 @@ func NewMux(deps *appDeps) *http.ServeMux {
 	mux := http.NewServeMux()
 	handler := BuildDeps(deps)
 	mux.HandleFunc("/pokemon/{name}", handler.GetPokemonByName)
+	mux.HandleFunc("/pokemon", handler.GetPokemon)
 	return mux
 }
 

@@ -19,6 +19,10 @@ func NewHandler(logger *slog.Logger, ps *services.PokemonService) *PokeHandler {
 	return &PokeHandler{logger, ps}
 }
 
+func (ph *PokeHandler) GetPokemon(w http.ResponseWriter, r *http.Request) {
+
+}
+
 // GetPokemonByName processes HTTP requests at the "/pokemon/{name}" endpoint
 func (ph *PokeHandler) GetPokemonByName(w http.ResponseWriter, r *http.Request) {
 	name := r.PathValue("name")

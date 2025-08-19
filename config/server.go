@@ -32,9 +32,9 @@ func StartApp() error {
 	}
 	mux := NewMux(deps)
 	cfg := LoadConfig()
-	logger.Info("starting server...", "port", cfg.Port)
+	logger.Info("starting server...", "port", cfg.port)
 
-	err = http.ListenAndServe(cfg.Port, mux)
+	err = http.ListenAndServe(cfg.port, mux)
 	if err != nil {
 		return err
 	}

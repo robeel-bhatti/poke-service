@@ -10,24 +10,24 @@ import (
 )
 
 type PokemonService struct {
-	Logger *slog.Logger
-	Client *clients.PokeClient
+	logger *slog.Logger
+	client *clients.PokeClient
 }
 
-func NewPokemonService(logger *slog.Logger, client *clients.PokeClient) *PokemonService {
+func NewPokemonService(l *slog.Logger, pc *clients.PokeClient) *PokemonService {
 	return &PokemonService{
-		Logger: logger,
-		Client: client,
+		logger: l,
+		client: pc,
 	}
 }
 
 // GetPokemonByName performs the biz logic to complete this operation
 func (ps PokemonService) GetPokemonByName(name string) (*models.PokemonResponse, error) {
-	pokemon, err := ps.Client.GetPokemonByName(name)
+	p, err := ps.client.GetPokemonByName(name)
 	if err != nil {
-		return nil, fmt.Errorf("could not get pokemon with name: %s. %w", name, err)
+		return nil, fmt.Errorf("could not get p with name: %s. %w", name, err)
 	}
-	return pokemon, nil
+	return p, nil
 }
 
 func (ps PokemonService) GetPokemon(qp url.Values) {

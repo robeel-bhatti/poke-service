@@ -4,6 +4,7 @@ package services
 import (
 	"fmt"
 	"log/slog"
+	"net/url"
 	"poke-ai-service/clients"
 	"poke-ai-service/models"
 )
@@ -27,4 +28,11 @@ func (ps PokemonService) GetPokemonByName(name string) (*models.PokemonResponse,
 		return nil, fmt.Errorf("could not get pokemon with name: %s. %w", name, err)
 	}
 	return pokemon, nil
+}
+
+func (ps PokemonService) GetPokemon(qp url.Values) {
+	offset := qp.Get("offset")
+	limit := qp.Get("limit")
+	fmt.Println("offset:", offset)
+	fmt.Println("limit:", limit)
 }

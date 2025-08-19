@@ -12,29 +12,31 @@ import (
 )
 
 type appDeps struct {
-	Logger  *slog.Logger
-	BaseUrl string
+	logger  *slog.Logger
+	baseUrl string
 }
 
 // StartApp gathers metadata to start the server
 func StartApp() error {
-	envErr := godotenv.Load()
-	if envErr != nil {
-		return envErr
+	var err error
+
+	err = godotenv.Load()
+	if err != nil {
+		return err
 	}
 
 	logger := LoadLogger()
 	deps := &appDeps{
-		Logger:  logger,
-		BaseUrl: os.Getenv("POKE_URL"),
+		logger:  logger,
+		baseUrl: os.Getenv("POKE_URL"),
 	}
 	mux := NewMux(deps)
-
 	cfg := LoadConfig()
 	logger.Info("starting server...", "port", cfg.Port)
-	serverErr := http.ListenAndServe(cfg.Port, mux)
-	if serverErr != nil {
-		return serverErr
+
+	err = http.ListenAndServe(cfg.Port, mux)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -42,18 +44,17 @@ func StartApp() error {
 // NewMux creates a new Multiplexer to handle HTTP requests
 func NewMux(deps *appDeps) *http.ServeMux {
 	mux := http.NewServeMux()
-	handler := BuildDeps(deps)
-	mux.HandleFunc("/pokemon/{name}", handler.GetPokemonByName)
-	mux.HandleFunc("/pokemon", handler.GetPokemon)
+	h := BuildDeps(deps)
+	mux.HandleFunc("/pokemon/{name}", h.GetPokemonByName)
+	mux.HandleFunc("/pokemon", h.GetPokemon)
 	return mux
 }
 
 // BuildDeps creates deps the handlers need
 func BuildDeps(deps *appDeps) *handlers.PokeHandler {
-	pokeClient := clients.NewPokeClient(deps.Logger, deps.BaseUrl, BuildHttpClient(float64(10)))
-	pokeService := services.NewPokemonService(deps.Logger, pokeClient)
-	pokeHandler := handlers.NewHandler(deps.Logger, pokeService)
-	return pokeHandler
+	pc := clients.NewPokeClient(deps.logger, deps.baseUrl, BuildHttpClient(float64(10)))
+	ps := services.NewPokemonService(deps.logger, pc)
+	return handlers.NewHandler(deps.logger, ps)
 }
 
 // BuildHttpClient creates an http client with configurable timeout settings

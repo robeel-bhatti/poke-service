@@ -14,29 +14,29 @@ import (
 
 // PokeClient struct whose instances invoke the Pokemon API.
 type PokeClient struct {
-	BaseUrl string
-	Logger  *slog.Logger
-	Client  *http.Client
+	baseUrl string
+	logger  *slog.Logger
+	client  *http.Client
 }
 
 // NewPokeClient serves as the constructor.
-func NewPokeClient(logger *slog.Logger, baseUrl string, httpClient *http.Client) *PokeClient {
+func NewPokeClient(l *slog.Logger, bu string, hc *http.Client) *PokeClient {
 	return &PokeClient{
-		BaseUrl: baseUrl,
-		Logger:  logger,
-		Client:  httpClient,
+		baseUrl: bu,
+		logger:  l,
+		client:  hc,
 	}
 }
 
 // GetPokemonByName invokes the Pokemon API to get a Pokemon by the provided name
 // and return the Pokemon metadata in a custom Pokemon struct or an error object if an unexpected failure occurs.
 func (pc *PokeClient) GetPokemonByName(name string) (*models.PokemonResponse, error) {
-	fullUrl, err := url.JoinPath(pc.BaseUrl, name)
+	path, err := url.JoinPath(pc.baseUrl, name)
 	if err != nil {
 		return nil, fmt.Errorf("%w: error creating URL to call pokemon API: %v", errors.ErrInternalServerError, err)
 	}
 
-	res, err := pc.Client.Get(fullUrl)
+	res, err := pc.client.Get(path)
 
 	if err != nil {
 		return nil, fmt.Errorf("%w: too many redirects or HTTP protocol error: %v", errors.ErrInternalServerError, err)
@@ -64,8 +64,8 @@ func (pc *PokeClient) GetPokemonByName(name string) (*models.PokemonResponse, er
 
 // unmarshalPokemon takes a list of bytes representing a Pokemon from the API response
 // and deserializes the data into a custom struct and returns it or an error if an unexpected failure occurs.
-func (pc *PokeClient) unmarshalPokemon(pokemon []byte) (*models.PokemonResponse, error) {
+func (pc *PokeClient) unmarshalPokemon(p []byte) (*models.PokemonResponse, error) {
 	pokeRes := &models.PokemonResponse{}
-	err := json.Unmarshal(pokemon, pokeRes)
+	err := json.Unmarshal(p, pokeRes)
 	return pokeRes, err
 }

@@ -30,8 +30,8 @@ func NewPokeClient(l *slog.Logger, bu string, hc *http.Client) *PokeClient {
 
 // GetPokemonByName invokes the Pokemon API to get a Pokemon by the provided name
 // and return the Pokemon metadata in a custom Pokemon struct or an error object if an unexpected failure occurs.
-func (pc *PokeClient) GetPokemonByName(name string) (*models.PokemonResponse, error) {
-	path, err := url.JoinPath(pc.baseUrl, name)
+func (pc *PokeClient) GetPokemonByName(id string) (*models.PokemonResponse, error) {
+	path, err := url.JoinPath(pc.baseUrl, id)
 	if err != nil {
 		return nil, fmt.Errorf("%w: error creating URL to call pokemon API: %v", errors.ErrInternalServerError, err)
 	}
@@ -68,4 +68,33 @@ func (pc *PokeClient) unmarshalPokemon(p []byte) (*models.PokemonResponse, error
 	pokeRes := &models.PokemonResponse{}
 	err := json.Unmarshal(p, pokeRes)
 	return pokeRes, err
+}
+
+func (pc *PokeClient) GetPokemon(o, l string) (*models.PaginatedResponse, error) {
+	u, err := url.Parse(pc.baseUrl)
+	if err != nil {
+		return nil, fmt.Errorf("%w. Error creating URL to get pokemon collection. %v", errors.ErrInternalServerError, err)
+	}
+	qp := url.Values{}
+	qp.Set("offset", o)
+	qp.Set("limit", l)
+	u.RawQuery = qp.Encode()
+	res, err := pc.client.Get(u.String())
+	if err != nil {
+		return nil, fmt.Errorf("%w: too many redirects or HTTP protocol error: %v", errors.ErrInternalServerError, err)
+	}
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%w. http request did not return 200 response: %v", errors.ErrInternalServerError, res)
+	}
+	defer res.Body.Close()
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, fmt.Errorf("%w: error reading response body: %v", errors.ErrInternalServerError, err)
+	}
+	pr := &models.PaginatedResponse{}
+	err = json.Unmarshal(body, pr)
+	if err != nil {
+		return nil, fmt.Errorf("%w: error deserializing response body: %v", errors.ErrInternalServerError, err)
+	}
+	return pr, nil
 }

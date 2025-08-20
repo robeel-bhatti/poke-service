@@ -30,9 +30,20 @@ func (ps PokemonService) GetPokemonByName(name string) (*models.PokemonResponse,
 	return p, nil
 }
 
-func (ps PokemonService) GetPokemon(qp url.Values) {
-	offset := qp.Get("offset")
-	limit := qp.Get("limit")
-	fmt.Println("offset:", offset)
-	fmt.Println("limit:", limit)
+func (ps PokemonService) GetPokemon(qp url.Values) ([]*models.PokemonResponse, error) {
+	o := qp.Get("offset")
+	l := qp.Get("limit")
+	pr, err := ps.client.GetPokemon(o, l)
+	if err != nil {
+		return nil, fmt.Errorf("could not get pokemon. %w", err)
+	}
+	var res []*models.PokemonResponse
+	for _, elem := range pr.Results {
+		p, err := ps.client.GetPokemonByName(elem.Name)
+		if err != nil {
+			return nil, fmt.Errorf("could not get pokemon. %w", err)
+		}
+		res = append(res, p)
+	}
+	return res, nil
 }

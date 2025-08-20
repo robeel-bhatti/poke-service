@@ -20,10 +20,10 @@ func NewHandler(l *slog.Logger, ps *services.PokemonService) *PokeHandler {
 }
 
 func (ph *PokeHandler) GetPokemon(w http.ResponseWriter, r *http.Request) {
-	ph.logger.Info("Request received to list of Pokemon")
-	ph.pokeService.GetPokemon(r.URL.Query())
-	w.Header().Set(constants.ContentTypeKey, constants.ContentTypeValue)
-	w.WriteHeader(http.StatusOK)
+	qp := r.URL.Query()
+	ph.logger.Info("Request received to get a collection of pokemon: ", "params", qp)
+	res, _ := ph.pokeService.GetPokemon(qp)
+	JsonEncode(w, http.StatusOK, "123", res)
 }
 
 // GetPokemonByName processes HTTP requests at the "/pokemon/{name}" endpoint

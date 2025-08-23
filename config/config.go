@@ -6,16 +6,16 @@ import (
 )
 
 type Config struct {
-	Port     string
-	Env      string
-	LogLevel string
+	port     string
+	env      string
+	logLevel string
 }
 
 // LoadConfig loads any required env vars
 func LoadConfig() *Config {
 	return &Config{
-		Port:     os.Getenv("PORT"),
-		Env:      os.Getenv("ENV"),
-		LogLevel: os.Getenv("LOG_LEVEL"),
+		port:     os.Getenv("PORT"),
+		env:      os.Getenv("ENV"),
+		logLevel: os.Getenv("LOG_LEVEL"),
 	}
 }

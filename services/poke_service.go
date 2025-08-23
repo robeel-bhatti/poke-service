@@ -4,27 +4,63 @@ package services
 import (
 	"fmt"
 	"log/slog"
+	"net/url"
 	"poke-ai-service/clients"
 	"poke-ai-service/models"
 )
 
 type PokemonService struct {
-	Logger *slog.Logger
-	Client *clients.PokeClient
+	logger *slog.Logger
+	client *clients.PokeClient
 }
 
-func NewPokemonService(logger *slog.Logger, client *clients.PokeClient) *PokemonService {
+func NewPokemonService(l *slog.Logger, pc *clients.PokeClient) *PokemonService {
 	return &PokemonService{
-		Logger: logger,
-		Client: client,
+		logger: l,
+		client: pc,
 	}
 }
 
 // GetPokemonByName performs the biz logic to complete this operation
 func (ps PokemonService) GetPokemonByName(name string) (*models.PokemonResponse, error) {
-	pokemon, err := ps.Client.GetPokemonByName(name)
+	p, err := ps.client.GetPokemonByName(name)
 	if err != nil {
-		return nil, fmt.Errorf("could not get pokemon with name: %s. %w", name, err)
+		return nil, fmt.Errorf("could not get p with name: %s. %w", name, err)
 	}
-	return pokemon, nil
+	return p, nil
+}
+
+func (ps PokemonService) GetPokemon(qp url.Values) ([]*models.PokeBasic, error) {
+	o := qp.Get("offset")
+	l := qp.Get("limit")
+	pr, err := ps.client.GetPokemon(o, l)
+	if err != nil {
+		return nil, fmt.Errorf("could not get pokemon. %w", err)
+	}
+
+	var res []*models.PokeBasic
+	for _, elem := range pr.Results {
+		p, err := ps.client.GetPokemonByName(elem.Name)
+		if err != nil {
+			return nil, fmt.Errorf("could not get pokemon. %w", err)
+		}
+		res = append(res, ps.getBasicPokemon(p))
+	}
+	return res, nil
+}
+
+func (ps PokemonService) getBasicPokemon(s *models.PokemonResponse) *models.PokeBasic {
+	t := models.Types{}
+	if len(s.Types) != 0 {
+		t.Primary = s.Types[0].Type.Name
+		if len(s.Types) > 1 {
+			t.Secondary = s.Types[1].Type.Name
+		}
+	}
+	return &models.PokeBasic{
+		Name:   s.Name,
+		Number: s.Id,
+		Type:   t,
+		Sprite: s.Sprites.OtherSprite.Home.FrontDefault,
+	}
 }

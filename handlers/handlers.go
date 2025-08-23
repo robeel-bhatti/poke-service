@@ -19,14 +19,22 @@ func NewHandler(l *slog.Logger, ps *services.PokemonService) *PokeHandler {
 	return &PokeHandler{l, ps}
 }
 
+// GetPokemon gets a collection of pokemon, applying the provided query params.
 func (ph *PokeHandler) GetPokemon(w http.ResponseWriter, r *http.Request) {
 	qp := r.URL.Query()
 	ph.logger.Info("Request received to get a collection of pokemon: ", "params", qp)
-	res, _ := ph.pokeService.GetPokemon(qp)
-	JsonEncode(w, http.StatusOK, "123", res)
+	res, err := ph.pokeService.GetPokemon(qp)
+	reqId := r.Header.Get(constants.RequestIdKey)
+	if err != nil {
+		ph.logger.Error(err.Error())
+		appErr := errors.CreateErrorResponse(err, r.URL.Path, reqId)
+		JsonEncode(w, appErr.Status, reqId, appErr)
+	} else {
+		JsonEncode(w, http.StatusOK, reqId, res)
+	}
 }
 
-// GetPokemonByName processes HTTP requests at the "/pokemon/{name}" endpoint
+// GetPokemonByName get a pokemon by the name provided in the path variable
 func (ph *PokeHandler) GetPokemonByName(w http.ResponseWriter, r *http.Request) {
 	n := r.PathValue("name")
 	ph.logger.Info("Request received to get the following Pokemon:", "name", n)

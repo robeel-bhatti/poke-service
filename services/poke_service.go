@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"poke-ai-service/clients"
 	"poke-ai-service/models"
+	"time"
 )
 
 type PokemonService struct {
@@ -38,18 +39,28 @@ func (ps PokemonService) GetPokemon(qp url.Values) ([]*models.PokeBasic, error) 
 		return nil, fmt.Errorf("could not get pokemon. %w", err)
 	}
 
-	var res []*models.PokeBasic
+	maxLen := len(pr.Results)
+	res := make([]*models.PokeBasic, 0, maxLen)
+	ch := make(chan *models.PokeBasic, maxLen)
+	startTime := time.Now()
+
 	for _, elem := range pr.Results {
-		p, err := ps.client.GetPokemonByName(elem.Name)
-		if err != nil {
-			return nil, fmt.Errorf("could not get pokemon. %w", err)
-		}
-		res = append(res, ps.getBasicPokemon(p))
+		go ps.getBasicPokemon(elem.Name, ch)
 	}
+	for i := 0; i < len(pr.Results); i++ {
+		val := <-ch
+		fmt.Println(val)
+		res = append(res, val)
+	}
+	endTime := time.Now()
+	diff := endTime.Sub(startTime)
+	ps.logger.Info(fmt.Sprintf("Non parallel took %v milliseconds", diff.Milliseconds()))
 	return res, nil
 }
 
-func (ps PokemonService) getBasicPokemon(s *models.PokemonResponse) *models.PokeBasic {
+func (ps PokemonService) getBasicPokemon(name string, ch chan<- *models.PokeBasic) {
+	s, _ := ps.client.GetPokemonByName(name)
+
 	t := models.Types{}
 	if len(s.Types) != 0 {
 		t.Primary = s.Types[0].Type.Name
@@ -57,10 +68,11 @@ func (ps PokemonService) getBasicPokemon(s *models.PokemonResponse) *models.Poke
 			t.Secondary = s.Types[1].Type.Name
 		}
 	}
-	return &models.PokeBasic{
+	pb := &models.PokeBasic{
 		Name:   s.Name,
 		Number: s.Id,
 		Type:   t,
 		Sprite: s.Sprites.OtherSprite.Home.FrontDefault,
 	}
+	ch <- pb
 }

@@ -58,5 +58,5 @@ func JsonEncode(w http.ResponseWriter, code int, id string, res any) {
 	}
 	w.Header().Set(constants.RequestIdKey, id)
 	w.Header().Set(constants.ContentTypeKey, constants.ContentTypeValue)
-	w.WriteHeader(code)
+	//w.WriteHeader(code)
 }

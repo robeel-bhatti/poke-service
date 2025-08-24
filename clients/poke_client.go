@@ -68,7 +68,7 @@ func (pc *PokeClient) GetPokemon(o, l string) (*models.PaginatedResponse, error)
 	u, err := url.Parse(pc.baseUrl)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"%w. Error creating URL to get pokemon collection. %v", errors.ErrInternalServerError, err)
+			"%w. Error creating URL: %v", errors.ErrInternalServerError, err)
 	}
 
 	u.RawQuery = url.Values{

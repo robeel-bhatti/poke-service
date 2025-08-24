@@ -9,6 +9,11 @@ import (
 	"poke-ai-service/models"
 )
 
+const (
+	DEFAULT_OFFSET = "0"
+	DEFAULT_LIMIT  = "6"
+)
+
 type PokemonService struct {
 	logger *slog.Logger
 	client *clients.PokeClient
@@ -30,10 +35,20 @@ func (ps PokemonService) GetPokemonByName(name string) (*models.PokemonResponse,
 	return p, nil
 }
 
+// GetPokemon gets a collection of pokemon using goroutines for concurrent HTTP calls
+// in order to improve performance and returns a list of pokemon results.
 func (ps PokemonService) GetPokemon(qp url.Values) ([]*models.PokeBasic, error) {
-	o := qp.Get("offset")
-	l := qp.Get("limit")
-	pr, err := ps.client.GetPokemon(o, l)
+	offset := qp.Get("offset")
+	if offset == "" {
+		offset = DEFAULT_OFFSET
+	}
+
+	limit := qp.Get("limit")
+	if limit == "" {
+		limit = DEFAULT_LIMIT
+	}
+
+	pr, err := ps.client.GetPokemon(offset, limit)
 	if err != nil {
 		return nil, fmt.Errorf("could not get pokemon collection: %w", err)
 	}
@@ -55,6 +70,8 @@ func (ps PokemonService) GetPokemon(qp url.Values) ([]*models.PokeBasic, error) 
 	return res, nil
 }
 
+// getBasicPokemon gets the bare minimum or basic details of a pokemon
+// and sends that information onto a channel.
 func (ps PokemonService) getBasicPokemon(name string, ch chan<- *models.PokeBasic) {
 	s, err := ps.client.GetPokemonByName(name)
 	if err != nil {

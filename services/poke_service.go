@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"poke-ai-service/clients"
 	"poke-ai-service/models"
-	"time"
 )
 
 type PokemonService struct {
@@ -26,7 +25,7 @@ func NewPokemonService(l *slog.Logger, pc *clients.PokeClient) *PokemonService {
 func (ps PokemonService) GetPokemonByName(name string) (*models.PokemonResponse, error) {
 	p, err := ps.client.GetPokemonByName(name)
 	if err != nil {
-		return nil, fmt.Errorf("could not get p with name: %s. %w", name, err)
+		return nil, fmt.Errorf("could not get pokemon with name: %s. %w", name, err)
 	}
 	return p, nil
 }
@@ -36,30 +35,33 @@ func (ps PokemonService) GetPokemon(qp url.Values) ([]*models.PokeBasic, error) 
 	l := qp.Get("limit")
 	pr, err := ps.client.GetPokemon(o, l)
 	if err != nil {
-		return nil, fmt.Errorf("could not get pokemon. %w", err)
+		return nil, fmt.Errorf("could not get pokemon collection: %w", err)
 	}
 
-	maxLen := len(pr.Results)
-	res := make([]*models.PokeBasic, 0, maxLen)
-	ch := make(chan *models.PokeBasic, maxLen)
-	startTime := time.Now()
+	resLen := len(pr.Results)
+	res := make([]*models.PokeBasic, 0, resLen)
+	ch := make(chan *models.PokeBasic, resLen)
 
 	for _, elem := range pr.Results {
 		go ps.getBasicPokemon(elem.Name, ch)
 	}
-	for i := 0; i < len(pr.Results); i++ {
-		val := <-ch
-		fmt.Println(val)
-		res = append(res, val)
+
+	for i := 0; i < resLen; i++ {
+		if val := <-ch; val != nil {
+			res = append(res, val)
+		}
 	}
-	endTime := time.Now()
-	diff := endTime.Sub(startTime)
-	ps.logger.Info(fmt.Sprintf("Non parallel took %v milliseconds", diff.Milliseconds()))
+
 	return res, nil
 }
 
 func (ps PokemonService) getBasicPokemon(name string, ch chan<- *models.PokeBasic) {
-	s, _ := ps.client.GetPokemonByName(name)
+	s, err := ps.client.GetPokemonByName(name)
+	if err != nil {
+		errMsg := fmt.Errorf("could not get pokemon with name: %s. %w", name, err)
+		ps.logger.Error(errMsg.Error())
+		ch <- nil
+	}
 
 	t := models.Types{}
 	if len(s.Types) != 0 {
@@ -68,11 +70,13 @@ func (ps PokemonService) getBasicPokemon(name string, ch chan<- *models.PokeBasi
 			t.Secondary = s.Types[1].Type.Name
 		}
 	}
+
 	pb := &models.PokeBasic{
 		Name:   s.Name,
 		Number: s.Id,
 		Type:   t,
 		Sprite: s.Sprites.OtherSprite.Home.FrontDefault,
 	}
+
 	ch <- pb
 }

@@ -22,12 +22,14 @@ func NewHandler(l *slog.Logger, ps *services.PokemonService) *PokeHandler {
 // GetPokemon gets a collection of pokemon, applying the provided query params.
 func (ph *PokeHandler) GetPokemon(w http.ResponseWriter, r *http.Request) {
 	qp := r.URL.Query()
-	ph.logger.Info("Request received to get a collection of pokemon: ", "params", qp)
-	res, err := ph.pokeService.GetPokemon(qp)
 	reqId := r.Header.Get(constants.RequestIdKey)
+	ph.logger.Info("Request received to get a collection of pokemon: ", "params", qp)
+
+	res, err := ph.pokeService.GetPokemon(qp)
+
 	if err != nil {
 		ph.logger.Error(err.Error())
-		appErr := errors.CreateErrorResponse(err, r.URL.Path, reqId)
+		appErr := errors.CreateErrorResponse(r.URL.Path, reqId, err)
 		JsonEncode(w, appErr.Status, reqId, appErr)
 	} else {
 		JsonEncode(w, http.StatusOK, reqId, res)
@@ -43,7 +45,7 @@ func (ph *PokeHandler) GetPokemonByName(w http.ResponseWriter, r *http.Request) 
 
 	if err != nil {
 		ph.logger.Error(err.Error())
-		appErr := errors.CreateErrorResponse(err, r.URL.Path, id)
+		appErr := errors.CreateErrorResponse(r.URL.Path, id, err)
 		JsonEncode(w, appErr.Status, id, appErr)
 	} else {
 		JsonEncode(w, http.StatusOK, id, res)
@@ -58,5 +60,4 @@ func JsonEncode(w http.ResponseWriter, code int, id string, res any) {
 	}
 	w.Header().Set(constants.RequestIdKey, id)
 	w.Header().Set(constants.ContentTypeKey, constants.ContentTypeValue)
-	//w.WriteHeader(code)
 }

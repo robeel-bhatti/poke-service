@@ -34,7 +34,7 @@ type AppError struct {
 	RequestId string    `json:"request_id"`
 }
 
-func NewAppError(message string, status int, path string, reqId string) *AppError {
+func NewAppError(message, path, reqId string, status int) *AppError {
 	return &AppError{
 		Message:   message,
 		Timestamp: time.Now(),
@@ -46,7 +46,7 @@ func NewAppError(message string, status int, path string, reqId string) *AppErro
 }
 
 // CreateErrorResponse creates and returns custom error HTTP response
-func CreateErrorResponse(err error, path string, reqId string) *AppError {
+func CreateErrorResponse(path, reqId string, err error) *AppError {
 	httpCode := http.StatusInternalServerError
 	for e, code := range ErrMap {
 		if errors.Is(err, e) {
@@ -54,5 +54,5 @@ func CreateErrorResponse(err error, path string, reqId string) *AppError {
 			break
 		}
 	}
-	return NewAppError(err.Error(), httpCode, path, reqId)
+	return NewAppError(err.Error(), path, reqId, httpCode)
 }

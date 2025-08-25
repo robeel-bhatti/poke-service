@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
-	"poke-ai-service/handlers/errors"
-	"poke-ai-service/services"
-	"poke-ai-service/util/constants"
+	"poke-ai-service/internal/handlers/errors"
+	"poke-ai-service/internal/services"
+	"poke-ai-service/internal/util/constants"
 )
 
 type PokeHandler struct {

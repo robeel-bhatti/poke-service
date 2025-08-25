@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"poke-ai-service/util/mocks"
+	"poke-ai-service/internal/util/mocks"
 	"testing"
 	"time"
 )

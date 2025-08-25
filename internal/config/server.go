@@ -5,9 +5,9 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"poke-ai-service/clients"
-	"poke-ai-service/handlers"
-	"poke-ai-service/services"
+	"poke-ai-service/internal/clients"
+	"poke-ai-service/internal/handlers"
+	"poke-ai-service/internal/services"
 	"time"
 )
 

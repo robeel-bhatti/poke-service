@@ -3,7 +3,7 @@ package main
 import (
 	"log/slog"
 	"os"
-	"poke-ai-service/config"
+	"poke-ai-service/internal/config"
 )
 
 func main() {

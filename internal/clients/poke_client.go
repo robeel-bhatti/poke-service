@@ -8,8 +8,8 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
-	"poke-ai-service/handlers/errors"
-	"poke-ai-service/models"
+	"poke-ai-service/internal/handlers/errors"
+	"poke-ai-service/internal/models"
 )
 
 // PokeClient struct whose instances invoke the Pokemon API.

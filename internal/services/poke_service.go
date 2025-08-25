@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
-	"poke-ai-service/clients"
-	"poke-ai-service/models"
+	"poke-ai-service/internal/clients"
+	"poke-ai-service/internal/models"
 )
 
 const (
